@@ -707,11 +707,17 @@ function updateStats(data) {
     if (val < minVal) { minVal=val; minNama=nama; }
   });
   if (minVal===Infinity) { minVal=0; minNama='-'; }
-  document.getElementById('statTotal').textContent = total.toLocaleString('id');
-  document.getElementById('statMax').textContent = maxVal;
-  document.getElementById('statMaxNama').textContent = maxNama;
-  document.getElementById('statMin').textContent = minVal;
-  document.getElementById('statMinNama').textContent = minNama;
+  document.getElementById('statTotal').textContent = total.toLocaleString('id') + ' kasus';
+  document.getElementById('statMax').textContent = maxVal + ' kasus';
+document.getElementById('statMaxNama').textContent = (() => {
+  const found = data.find(d => d.upt_puskesmas === maxNama);
+  return found ? found.nama_kecamatan + ' · ' + maxNama : maxNama;
+})();
+document.getElementById('statMin').textContent = minVal + ' kasus';
+document.getElementById('statMinNama').textContent = (() => {
+  const found = data.find(d => d.upt_puskesmas === minNama);
+  return found ? found.nama_kecamatan + ' · ' + minNama : minNama;
+})();
 }
 
 let chartBar, chartPie, chartLine, chartLineKec;
