@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BayiStat — Edukasi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1f3c;
+      --navy-mid: #1a3260;
+      --blue: #1e56c8;
+      --blue-light: #3b76f5;
+      --sky: #dbeafe;
+      --red: #c0392b;
+      --red-light: #fff0ee;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --cream: #f5f7ff;
+      --white: #ffffff;
+      --border: #dee7f8;
+      --text: #0d1f3c;
+      --muted: #5c718f;
+      --card-shadow: 0 2px 16px rgba(13,31,60,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    nav {
+      background: var(--navy);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-inner {
+      max-width: 1160px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 62px;
+    }
+    .nav-brand {
+      font-family: 'Fraunces', serif;
+      font-weight: 900; font-size: 1.3rem;
+      color: #fff; text-decoration: none; letter-spacing: -0.5px;
+    }
+    .nav-brand span { color: #7eb3ff; }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      padding: 7px 14px; border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #fff; background: rgba(255,255,255,0.1);
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #243e7a 100%);
+      color: white; padding: 64px 24px 72px; position: relative; overflow: hidden;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 80% 50%, rgba(59,118,245,0.15) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .page-header-inner {
+      max-width: 1160px; margin: 0 auto; position: relative; z-index: 1;
+    }
+    .page-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      color: #a5c8ff; margin-bottom: 18px;
+    }
+    .page-eyebrow::before { content: '●'; font-size: 8px; color: #7eb3ff; }
+    .page-header h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 900;
+      line-height: 1.1; letter-spacing: -0.8px; margin-bottom: 14px;
+    }
+    .page-header h1 em { font-style: italic; color: #7eb3ff; }
+    .page-header p {
+      font-size: 15px; color: rgba(255,255,255,0.72);
+      max-width: 560px; line-height: 1.75;
+    }
+
+    .content-wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px 80px; }
+
+    .sec-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1.2px; color: var(--blue);
+      background: var(--sky); display: inline-block;
+      padding: 4px 12px; border-radius: 100px;
+      margin: 52px 0 22px;
+    }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 26px;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 8px 28px rgba(13,31,60,0.09);
+      transform: translateY(-2px);
+    }
+    .card-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; margin-bottom: 16px; flex-shrink: 0;
+    }
+    .icon-blue { background: var(--sky); }
+    .icon-red { background: var(--red-light); }
+    .icon-amber { background: var(--amber-light); }
+    .icon-green { background: var(--green-light); }
+
+    .card h5 {
+      font-family: 'Fraunces', serif;
+      font-size: 1rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 10px; line-height: 1.3;
+    }
+    .card p {
+      font-size: 13.5px; color: var(--muted); line-height: 1.8; margin: 0;
+    }
+
+    .list-card h5 { margin-bottom: 18px; }
+    .list-item {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px; color: var(--muted); line-height: 1.7;
+    }
+    .list-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .list-item strong { color: var(--text); }
+    .bullet {
+      width: 8px; height: 8px; border-radius: 50%;
+      margin-top: 7px; flex-shrink: 0;
+    }
+
+    .highlight-card {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+      border-radius: 20px; padding: 36px 40px;
+      color: white; grid-column: span 2;
+    }
+    .highlight-card h5 {
+      font-family: 'Fraunces', serif; font-size: 1.3rem; font-weight: 900;
+      color: white; margin-bottom: 12px; letter-spacing: -0.3px;
+    }
+    .highlight-card p { color: rgba(255,255,255,0.75); font-size: 14px; line-height: 1.8; }
+    .highlight-card .hc-stats {
+      display: flex; gap: 32px; margin-top: 24px;
+    }
+    .hc-stat .hc-num {
+      font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900;
+      color: #7eb3ff; line-height: 1;
+    }
+    .hc-stat .hc-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 3px; }
+
+    .prev-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .prev-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px;
+      transition: all 0.2s;
+    }
+    .prev-card:hover {
+      border-color: var(--blue-light);
+      box-shadow: 0 8px 24px rgba(30,86,200,0.1);
+      transform: translateY(-2px);
+    }
+    .prev-card .card-icon { margin-bottom: 14px; }
+    .prev-card h5 {
+      font-family: 'Fraunces', serif; font-size: 0.95rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 8px;
+    }
+    .prev-card p { font-size: 13px; color: var(--muted); line-height: 1.75; }
+
+    .callout {
+      background: var(--sky); border: 1px solid #b3d0f5;
+      border-radius: 16px; padding: 28px 32px;
+      display: flex; gap: 20px; align-items: flex-start;
+      margin-top: 52px;
+    }
+    .callout-icon { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+    .callout h5 {
+      font-family: 'Fraunces', serif; font-size: 1rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 6px;
+    }
+    .callout p { font-size: 13.5px; color: var(--muted); line-height: 1.75; }
+
+    @media (max-width: 900px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-4 { grid-template-columns: 1fr 1fr; }
+      .prev-grid { grid-template-columns: 1fr 1fr; }
+      .highlight-card { grid-column: span 1; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .grid-3 { grid-template-columns: 1fr; }
+      .grid-4 { grid-template-columns: 1fr; }
+      .prev-grid { grid-template-columns: 1fr; }
+      .highlight-card .hc-stats { flex-wrap: wrap; gap: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">Bayi<span>Stat</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Beranda</a></li>
+      <li><a href="edukasi.html" class="active">Edukasi</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-header-inner">
+    <div class="page-eyebrow">Edukasi Kesehatan</div>
+    <h1>Memahami Kematian Bayi<br>Baru Lahir</h1>
+    <p>Informasi seputar kematian bayi baru lahir untuk mendukung pemahaman dan upaya pencegahan, baik bagi masyarakat umum maupun tenaga kesehatan.</p>
+  </div>
+</div>
+
+<div class="content-wrap">
+
+  <!-- PEMAHAMAN DASAR -->
+  <div class="sec-label">Pemahaman Dasar</div>
+  <div class="grid-3">
+
+    <div class="card">
+      <div class="card-icon icon-blue">📖</div>
+      <h5>Apa itu kematian bayi baru lahir?</h5>
+      <p>Kematian bayi baru lahir adalah kondisi di mana bayi meninggal pada masa neonatal, yaitu dalam 28 hari pertama setelah kelahiran. Kondisi ini merupakan salah satu indikator utama derajat kesehatan masyarakat yang terus dipantau oleh lembaga kesehatan nasional maupun internasional.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-blue">🌍</div>
+      <h5>Seberapa sering terjadi?</h5>
+      <p>Jutaan kasus kematian bayi baru lahir terjadi setiap tahun di seluruh dunia, dengan proporsi terbesar berasal dari negara berkembang, termasuk Indonesia. Sebagian besar kasus sebenarnya dapat dicegah melalui pemeriksaan kehamilan rutin dan akses layanan kesehatan yang memadai.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-blue">🕐</div>
+      <h5>Kapan risiko tertinggi terjadi?</h5>
+      <p>Risiko kematian paling tinggi terjadi pada <strong>24 jam pertama</strong> setelah kelahiran dan pada masa neonatal dini (0–7 hari). Pemantauan ketat oleh tenaga kesehatan pada periode ini sangat penting untuk mencegah komplikasi yang dapat mengancam jiwa bayi.</p>
+    </div>
+
+  </div>
+
+  <!-- PENYEBAB & FAKTOR RISIKO -->
+  <div class="sec-label">Penyebab &amp; Faktor Risiko</div>
+  <div class="grid-2">
+
+    <div class="card list-card">
+      <div class="card-icon icon-red">⚠️</div>
+      <h5>Penyebab medis yang umum</h5>
+      <div class="list-item">
+        <span class="bullet" style="background:#c0392b;"></span>
+        <span><strong>Gangguan pada plasenta</strong> — fungsi plasenta yang tidak optimal menghambat suplai oksigen dan nutrisi ke bayi selama kehamilan.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#c0392b;"></span>
+        <span><strong>Infeksi selama kehamilan</strong> — beberapa infeksi seperti sifilis, malaria, atau listeria dapat berpindah dari ibu ke bayi dan membahayakan keselamatannya.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#c0392b;"></span>
+        <span><strong>Kelainan bawaan</strong> — kelainan kromosom atau perkembangan organ tertentu dapat berdampak pada kelangsungan hidup bayi baru lahir.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#c0392b;"></span>
+        <span><strong>Preeklampsia</strong> — tekanan darah tinggi yang tidak tertangani selama kehamilan dapat membahayakan kondisi ibu dan bayi.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#c0392b;"></span>
+        <span><strong>Asfiksia saat persalinan</strong> — gangguan pernapasan bayi saat persalinan yang membutuhkan pertolongan medis segera.</span>
+      </div>
+    </div>
+
+    <div class="card list-card">
+      <div class="card-icon icon-amber">📋</div>
+      <h5>Faktor risiko pada ibu</h5>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Usia ibu</strong> — risiko lebih tinggi pada ibu hamil di bawah 20 tahun atau di atas 35 tahun, sehingga diperlukan pemantauan lebih ketat.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Diabetes dan hipertensi</strong> — kondisi yang tidak terkontrol dengan baik selama kehamilan dapat meningkatkan risiko komplikasi secara signifikan.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Kehamilan kembar</strong> — kehamilan dengan lebih dari satu janin memiliki risiko komplikasi yang lebih tinggi dan memerlukan pemantauan khusus.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Kebiasaan merokok</strong> — paparan asap rokok selama kehamilan dapat mengganggu pertumbuhan dan perkembangan bayi dalam kandungan.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Kekurangan gizi</strong> — kondisi gizi ibu yang kurang baik selama kehamilan berdampak langsung pada perkembangan bayi.</span>
+      </div>
+      <div class="list-item">
+        <span class="bullet" style="background:#d97706;"></span>
+        <span><strong>Faktor sosial ekonomi</strong> — keterbatasan ekonomi dapat menghambat akses ibu hamil terhadap layanan kesehatan yang dibutuhkan.</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AKSES LAYANAN KESEHATAN -->
+  <div class="sec-label">Faktor Akses Layanan Kesehatan</div>
+  <div class="grid-3">
+
+    <div class="card">
+      <div class="card-icon icon-blue">🏥</div>
+      <h5>Keterbatasan fasilitas kesehatan</h5>
+      <p>Wilayah dengan angka kematian bayi yang tinggi seringkali memiliki keterbatasan sarana dan prasarana kesehatan. Ketersediaan fasilitas yang memadai sangat penting untuk mendukung penanganan ibu hamil dan bayi baru lahir secara optimal.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-green">👩‍⚕️</div>
+      <h5>Ketersediaan tenaga kesehatan</h5>
+      <p>Kurangnya tenaga kesehatan terlatih di suatu wilayah dapat meningkatkan risiko kematian bayi baru lahir. Bidan dan dokter yang terampil berperan penting dalam mendeteksi komplikasi sejak dini dan memberikan pertolongan yang tepat saat persalinan.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-icon icon-amber">🛣️</div>
+      <h5>Akses ke fasilitas rujukan</h5>
+      <p>Kemudahan akses menuju fasilitas rujukan seperti rumah sakit atau puskesmas dengan layanan lengkap sangat menentukan hasil penanganan kasus darurat. Jarak yang jauh dan infrastruktur yang kurang memadai dapat menghambat pertolongan tepat waktu.</p>
+    </div>
+
+  </div>
+
+  <!-- LANGKAH PENCEGAHAN -->
+  <div class="sec-label">Langkah Pencegahan</div>
+  <div class="prev-grid">
+
+    <div class="prev-card">
+      <div class="card-icon icon-blue">🩺</div>
+      <h5>Pemeriksaan rutin (ANC)</h5>
+      <p>Lakukan minimal 6 kali pemeriksaan kehamilan selama masa kehamilan. Pemeriksaan sejak dini membantu mendeteksi masalah sebelum berkembang menjadi kondisi yang lebih serius.</p>
+    </div>
+
+    <div class="prev-card">
+      <div class="card-icon icon-green">🥗</div>
+      <h5>Gizi seimbang</h5>
+      <p>Konsumsi asam folat sejak sebelum hamil dan ikuti anjuran konsumsi suplemen dari bidan atau dokter untuk mendukung tumbuh kembang bayi secara optimal.</p>
+    </div>
+
+    <div class="prev-card">
+      <div class="card-icon icon-amber">💊</div>
+      <h5>Pengendalian kondisi kesehatan ibu</h5>
+      <p>Ibu hamil dengan riwayat diabetes atau hipertensi dianjurkan untuk melakukan konsultasi rutin kepada dokter spesialis guna memastikan kondisi kesehatannya tetap terkontrol selama kehamilan.</p>
+    </div>
+
+    <div class="prev-card">
+      <div class="card-icon icon-blue">🏠</div>
+      <h5>Persalinan di fasilitas kesehatan</h5>
+      <p>Sangat disarankan untuk melakukan persalinan di fasilitas kesehatan yang memadai dan didampingi oleh tenaga kesehatan terlatih guna meminimalkan risiko komplikasi.</p>
+    </div>
+
+    <div class="prev-card">
+      <div class="card-icon icon-red">🚭</div>
+      <h5>Hindari paparan asap rokok</h5>
+      <p>Hentikan kebiasaan merokok dan hindari paparan asap rokok dari lingkungan sekitar selama masa kehamilan, karena dapat berdampak buruk pada kesehatan bayi.</p>
+    </div>
+
+    <div class="prev-card">
+      <div class="card-icon icon-amber">📢</div>
+      <h5>Kenali tanda bahaya kehamilan</h5>
+      <p>Ibu hamil perlu memahami tanda-tanda bahaya selama kehamilan seperti perdarahan, berkurangnya gerakan bayi, atau pembengkakan mendadak, agar dapat segera mendapatkan pertolongan medis.</p>
+    </div>
+
+  </div>
+
+  <!-- CALLOUT -->
+  <div class="callout">
+    <div class="callout-icon">💙</div>
+    <div>
+      <h5>Pesan untuk Ibu Hamil dan Keluarga</h5>
+      <p>Pemeriksaan kehamilan secara rutin adalah langkah paling penting yang dapat dilakukan untuk menjaga kesehatan ibu dan bayi. Jangan tunda kunjungan ke bidan atau dokter meskipun merasa sehat — banyak kondisi berbahaya tidak menunjukkan gejala yang jelas di awal. Dukungan keluarga dalam memastikan ibu mendapatkan akses layanan kesehatan yang tepat sangat berarti bagi keselamatan ibu dan buah hati.</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer style="background: var(--navy); color: rgba(255,255,255,0.6); padding: 48px 24px 28px;">
+  <div style="max-width:1160px; margin:0 auto;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.08);">
+      <div>
+        <a href="index.html" style="font-family:'Fraunces',serif; font-weight:900; font-size:1.2rem; color:white; text-decoration:none;">Bayi<span style="color:#7eb3ff;">Stat</span></a>
+        <p style="font-size:12px; margin-top:6px; max-width:320px; line-height:1.7;">Sistem informasi data kematian bayi baru lahir di Kota Bandung. Dikembangkan oleh Kelompok 2 D3 Kebidanan, Universitas Bhakti Kencana.</p>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <a href="index.html" style="font-size:13px; color:rgba(255,255,255,0.6); text-decoration:none; padding:8px 16px; border:1px solid rgba(255,255,255,0.15); border-radius:8px;">Beranda</a>
+        <a href="edukasi.html" style="font-size:13px; color:white; text-decoration:none; padding:8px 16px; border:1px solid rgba(255,255,255,0.3); border-radius:8px; background:rgba(255,255,255,0.08);">Edukasi</a>
+        <a href="dashboard.html" style="font-size:13px; color:rgba(255,255,255,0.6); text-decoration:none; padding:8px 16px; border:1px solid rgba(255,255,255,0.15); border-radius:8px;">Dashboard</a>
+      </div>
+    </div>
+    <div style="padding-top:24px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; font-size:12px;">
+      <span>© 2025/2026 BayiStat · Universitas Bhakti Kencana · Prodi D3 Kebidanan</span>
+      <span style="color:rgba(255,255,255,0.35);">Mata Kuliah Teknologi Informasi · Dosen: Linda Listriyati, M.Keb</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

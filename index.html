@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BayiStat — Data Kematian Bayi Kota Bandung</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0d1f3c;
+      --navy-mid: #1a3260;
+      --blue: #1e56c8;
+      --blue-light: #3b76f5;
+      --sky: #dbeafe;
+      --red: #c0392b;
+      --red-light: #fff0ee;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --cream: #f5f7ff;
+      --white: #ffffff;
+      --border: #dee7f8;
+      --text: #0d1f3c;
+      --muted: #5c718f;
+      --card-shadow: 0 2px 16px rgba(13,31,60,0.08);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    nav {
+      background: var(--navy);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-inner {
+      max-width: 1160px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 62px;
+    }
+    .nav-brand {
+      font-family: 'Fraunces', serif;
+      font-weight: 900; font-size: 1.3rem;
+      color: #fff; text-decoration: none; letter-spacing: -0.5px;
+    }
+    .nav-brand span { color: #7eb3ff; }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      padding: 7px 14px; border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #fff; background: rgba(255,255,255,0.1);
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 60%, #243e7a 100%);
+      color: white; padding: 80px 24px 100px; position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 70% 50%, rgba(59,118,245,0.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-inner {
+      max-width: 1160px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px; padding: 5px 14px;
+      font-size: 12px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase;
+      color: #a5c8ff; margin-bottom: 20px;
+    }
+    .hero-eyebrow::before { content: '●'; font-size: 8px; color: #7eb3ff; }
+    .hero h1 {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -1px; margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: italic; color: #7eb3ff; }
+    .hero p {
+      font-size: 15px; color: rgba(255,255,255,0.75);
+      max-width: 480px; margin-bottom: 36px; line-height: 1.75;
+    }
+    .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--blue-light); color: white;
+      border: none; border-radius: 10px;
+      padding: 13px 26px; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(59,118,245,0.4);
+    }
+    .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: white;
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 10px;
+      padding: 13px 26px; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { background: rgba(255,255,255,0.08); }
+
+    .hero-visual {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    .mini-card {
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px; padding: 18px 16px;
+      backdrop-filter: blur(4px);
+    }
+    .mini-card .mc-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: rgba(255,255,255,0.5); margin-bottom: 8px;
+    }
+    .mini-card .mc-val {
+      font-family: 'Fraunces', serif;
+      font-size: 2rem; font-weight: 900; color: #fff; line-height: 1;
+    }
+    .mini-card .mc-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+    .mini-card.span2 { grid-column: span 2; }
+    .mini-card.red-accent { border-color: rgba(192,57,43,0.4); }
+    .mc-badge {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 100px; margin-top: 6px;
+    }
+    .badge-down { background: rgba(5,150,105,0.25); color: #34d399; }
+    .badge-up { background: rgba(192,57,43,0.25); color: #f87171; }
+
+    .section { padding: 80px 24px; }
+    .section-inner { max-width: 1160px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 52px; }
+    .section-tag {
+      display: inline-block;
+      font-size: 11px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--blue); background: var(--sky);
+      padding: 5px 14px; border-radius: 100px; margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 900;
+      color: var(--navy); letter-spacing: -0.5px; margin-bottom: 12px;
+    }
+    .section-sub { color: var(--muted); font-size: 15px; max-width: 520px; margin: 0 auto; }
+
+    .stat-strip {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+    .stat-strip-inner {
+      max-width: 1160px; margin: 0 auto;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+    }
+    .stat-item {
+      padding: 32px 24px; border-right: 1px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .stat-icon.blue { background: var(--sky); }
+    .stat-icon.red { background: var(--red-light); }
+    .stat-icon.amber { background: var(--amber-light); }
+    .stat-icon.green { background: var(--green-light); }
+    .stat-content { flex: 1; }
+    .stat-num {
+      font-family: 'Fraunces', serif;
+      font-size: 1.8rem; font-weight: 900; color: var(--navy); line-height: 1;
+    }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .about-grid {
+      display: grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: center;
+    }
+    .about-img {
+      border-radius: 20px; overflow: hidden;
+      box-shadow: var(--card-shadow);
+      position: relative;
+    }
+    .about-img img { width: 100%; height: 360px; object-fit: cover; display: block; }
+    .about-badge {
+      position: absolute; bottom: 20px; left: 20px; right: 20px;
+      background: rgba(13,31,60,0.88); backdrop-filter: blur(8px);
+      border-radius: 12px; padding: 14px 18px;
+      color: white; font-size: 13px;
+    }
+    .about-badge strong { display: block; font-size: 15px; margin-bottom: 2px; }
+    .about-content { }
+    .about-content h2 {
+      font-family: 'Fraunces', serif; font-size: 1.9rem; font-weight: 900;
+      color: var(--navy); letter-spacing: -0.5px; margin-bottom: 16px; line-height: 1.2;
+    }
+    .about-content p { color: var(--muted); font-size: 14px; line-height: 1.8; margin-bottom: 16px; }
+    .dataset-list {
+      list-style: none; display: flex; flex-direction: column; gap: 10px;
+      margin-top: 20px;
+    }
+    .dataset-list li {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px; color: var(--text);
+    }
+    .dataset-list li::before {
+      content: '✓'; width: 22px; height: 22px;
+      background: var(--sky); color: var(--blue);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+    }
+
+    .feature-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;
+    }
+    .feature-card {
+      background: var(--white);
+      border: 1px solid var(--border); border-radius: 16px;
+      padding: 28px; transition: all 0.25s;
+    }
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(13,31,60,0.1);
+      border-color: var(--blue-light);
+    }
+    .fc-icon {
+      font-size: 28px; margin-bottom: 18px;
+      width: 52px; height: 52px;
+      background: var(--sky); border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .feature-card h3 {
+      font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 700;
+      color: var(--navy); margin-bottom: 10px;
+    }
+    .feature-card p { font-size: 13px; color: var(--muted); line-height: 1.75; }
+
+    .insight-strip {
+      background: var(--navy); color: white;
+      padding: 64px 24px;
+    }
+    .insight-inner { max-width: 1160px; margin: 0 auto; }
+    .insight-top {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      margin-bottom: 36px;
+    }
+    .insight-top h2 {
+      font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900;
+      letter-spacing: -0.5px; max-width: 380px; line-height: 1.2;
+    }
+    .insight-top p { color: rgba(255,255,255,0.6); font-size: 13px; max-width: 280px; text-align: right; }
+    .insight-cards {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    }
+    .insight-card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px; padding: 22px;
+      transition: background 0.2s;
+    }
+    .insight-card:hover { background: rgba(255,255,255,0.1); }
+    .insight-card .ic-num {
+      font-family: 'Fraunces', serif; font-size: 2.2rem; font-weight: 900;
+      color: #7eb3ff; line-height: 1; margin-bottom: 8px;
+    }
+    .insight-card p { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.6; }
+
+    .reko-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+    }
+    .reko-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; padding: 26px;
+      display: flex; gap: 18px; align-items: flex-start;
+    }
+    .reko-num {
+      font-family: 'Fraunces', serif; font-size: 2rem; font-weight: 900;
+      color: var(--border); line-height: 1; flex-shrink: 0;
+      min-width: 36px;
+    }
+    .reko-card h4 {
+      font-size: 14px; font-weight: 700; color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .reko-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+
+    .cta-banner {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-light) 100%);
+      border-radius: 20px; padding: 56px 48px;
+      display: flex; justify-content: space-between; align-items: center; gap: 32px;
+      margin: 0 24px 80px;
+    }
+    .cta-banner h2 {
+      font-family: 'Fraunces', serif; font-size: 1.8rem; font-weight: 900;
+      color: white; letter-spacing: -0.5px; max-width: 480px; line-height: 1.2;
+    }
+    .cta-banner p { color: rgba(255,255,255,0.8); font-size: 14px; margin-top: 8px; }
+    .cta-actions { display: flex; gap: 12px; flex-shrink: 0; }
+    .btn-white {
+      background: white; color: var(--blue);
+      border: none; border-radius: 10px;
+      padding: 13px 26px; font-size: 14px; font-weight: 700;
+      cursor: pointer; text-decoration: none; white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .btn-white:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+
+    footer {
+      background: var(--navy); color: rgba(255,255,255,0.6);
+      padding: 48px 24px 28px;
+    }
+    .footer-inner { max-width: 1160px; margin: 0 auto; }
+    .footer-top {
+      display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 40px; padding-bottom: 40px; border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .footer-brand { }
+    .footer-brand .brand-name {
+      font-family: 'Fraunces', serif; font-weight: 900;
+      font-size: 1.2rem; color: white; margin-bottom: 10px; display: block;
+    }
+    .footer-brand .brand-name span { color: #7eb3ff; }
+    .footer-brand p { font-size: 12px; line-height: 1.7; }
+    .footer-col h5 {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+      color: rgba(255,255,255,0.4); margin-bottom: 14px;
+    }
+    .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .footer-col ul a {
+      font-size: 13px; color: rgba(255,255,255,0.6); text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-col ul a:hover { color: white; }
+    .footer-bottom {
+      padding-top: 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 12px;
+    }
+    .footer-bottom span { }
+    .footer-credits { color: rgba(255,255,255,0.35); }
+
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-visual { display: none; }
+      .stat-strip-inner { grid-template-columns: repeat(2, 1fr); }
+      .stat-item:nth-child(2) { border-right: none; }
+      .about-grid { grid-template-columns: 1fr; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .insight-cards { grid-template-columns: repeat(2, 1fr); }
+      .reko-grid { grid-template-columns: 1fr; }
+      .cta-banner { flex-direction: column; text-align: center; }
+      .cta-actions { justify-content: center; }
+      .footer-top { grid-template-columns: 1fr 1fr; }
+      .insight-top { flex-direction: column; align-items: flex-start; }
+      .insight-top p { text-align: left; }
+    }
+    @media (max-width: 600px) {
+      .feature-grid { grid-template-columns: 1fr; }
+      .stat-strip-inner { grid-template-columns: 1fr; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat-item:last-child { border-bottom: none; }
+      .insight-cards { grid-template-columns: 1fr 1fr; }
+      .footer-top { grid-template-columns: 1fr; }
+      .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">Bayi<span>Stat</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">Beranda</a></li>
+      <li><a href="edukasi.html">Edukasi</a></li>
+      <li><a href="dashboard.html">Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <h1>Data Kematian Bayi Baru Lahir Kota Bandung</h1>
+      <p>BayiStat menyajikan data kematian bayi baru lahir di Kota Bandung berdasarkan puskesmas dan tahun — untuk mendukung pemantauan, analisis, dan pengambilan keputusan kesehatan ibu dan anak.</p>
+      <div class="hero-cta">
+        <a href="dashboard.html" class="btn-primary">Lihat Dashboard →</a>
+        <a href="edukasi.html" class="btn-outline">Pelajari Data</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="mini-card">
+        <div class="mc-label">Total Data</div>
+        <div class="mc-val">720+</div>
+        <div class="mc-sub">Baris observasi</div>
+      </div>
+      <div class="mini-card red-accent">
+        <div class="mc-label">Periode</div>
+        <div class="mc-val">9</div>
+        <div class="mc-sub">Tahun (2016–2024)</div>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label">Variabel</div>
+        <div class="mc-val">5</div>
+        <div class="mc-sub">Dimensi data</div>
+        <span class="mc-badge badge-down">Open Data</span>
+      </div>
+      <div class="mini-card">
+        <div class="mc-label">Sumber</div>
+        <div class="mc-val" style="font-size:1.1rem; line-height:1.3; margin-top:4px">Open Data<br>Bandung</div>
+        <span class="mc-badge badge-down">Resmi</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STAT STRIP -->
+<div class="stat-strip">
+  <div class="stat-strip-inner">
+    <div class="stat-item">
+      <div class="stat-icon blue">📊</div>
+      <div class="stat-content">
+        <div class="stat-num">720+</div>
+        <div class="stat-label">Total baris data observasi</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon red">📍</div>
+      <div class="stat-content">
+        <div class="stat-num">30+</div>
+        <div class="stat-label">Puskesmas di Kota Bandung</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon amber">📅</div>
+      <div class="stat-content">
+        <div class="stat-num">2016–2024</div>
+        <div class="stat-label">Rentang tahun data</div>
+      </div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-icon green">✅</div>
+      <div class="stat-content">
+        <div class="stat-num">5</div>
+        <div class="stat-label">Variabel dataset tersedia</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT / DATASET -->
+<section class="section" style="background: var(--white);">
+  <div class="section-inner">
+    <div class="about-grid">
+      <div class="about-img">
+        <img src="https://images.unsplash.com/photo-1584515933487-779824d29309?w=800&q=80" alt="Perawatan bayi baru lahir">
+        <div class="about-badge">
+          <strong>Sumber: Open Data Kota Bandung</strong>
+          opendata.bandung.go.id · Dataset resmi Pemerintah Kota Bandung
+        </div>
+      </div>
+      <div class="about-content">
+        <div class="section-tag">Tentang Dataset</div>
+        <h2>Data Terbuka, Analisis Nyata</h2>
+        <p>Dataset ini diperoleh dari portal resmi Open Data Kota Bandung — mencakup data angka kematian bayi baru lahir menurut puskesmas di Kota Bandung. Data meliputi seluruh kecamatan dengan cakupan 9 tahun penuh.</p>
+        <p>Data telah melalui proses <em>data wrangling</em> menggunakan Microsoft Excel: pembersihan duplikat, pivot table, agregasi per tahun dan kecamatan, serta visualisasi dashboard.</p>
+        <ul class="dataset-list">
+          <li>Variabel: Tahun, Nama Puskesmas, Kecamatan, Jumlah Satuan, Jumlah Tahunan</li>
+          <li>±720 baris data — periode 2016 hingga 2024</li>
+          <li>Data fluktuatif — ada tren naik-turun per tahun</li>
+          <li>Menampilkan ketimpangan antar wilayah (puskesmas/kecamatan)</li>
+          <li>Diolah & divisualisasikan dengan Tableau Public</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FITUR -->
+<section class="section">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">Fitur Utama</div>
+      <h2 class="section-title">Apa yang Bisa Kamu Temukan?</h2>
+      <p class="section-sub">BayiStat menyajikan data secara interaktif agar mudah dipahami oleh siapa saja — dari tenaga kesehatan hingga masyarakat umum.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="fc-icon">📈</div>
+        <h3>Tren Tahunan</h3>
+        <p>Visualisasi bar chart dan line chart menampilkan perubahan angka kematian bayi dari tahun 2016 hingga 2024 secara jelas.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🏥</div>
+        <h3>Per Puskesmas</h3>
+        <p>Filter data berdasarkan unit puskesmas tertentu untuk melihat kontribusi dan tren spesifik di setiap fasilitas kesehatan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🗺️</div>
+        <h3>Distribusi Kecamatan</h3>
+        <p>Identifikasi kecamatan dengan beban kasus tertinggi dan wilayah yang memerlukan perhatian khusus dari Dinas Kesehatan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">🔍</div>
+        <h3>Analisis Insight</h3>
+        <p>Temukan pola, ketimpangan antar wilayah, dan faktor-faktor yang berkontribusi terhadap angka kematian bayi baru lahir.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">📋</div>
+        <h3>Rekomendasi Berbasis Data</h3>
+        <p>Setiap temuan dilengkapi dengan interpretasi dan rekomendasi tindak lanjut yang dapat mendukung kebijakan kesehatan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon">📚</div>
+        <h3>Edukasi Kesehatan</h3>
+        <p>Halaman edukasi menyediakan informasi tentang faktor risiko, pencegahan, dan pentingnya pelayanan antenatal yang berkualitas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INSIGHT STRIP -->
+<div class="insight-strip">
+  <div class="insight-inner">
+    <div class="insight-top">
+      <h2>Temuan Kunci dari Data</h2>
+      <p>Hasil analisis data kematian bayi baru lahir di Kota Bandung 2016–2024</p>
+    </div>
+    <div class="insight-cards">
+      <div class="insight-card">
+        <div class="ic-num">01</div>
+        <p>Angka kematian bayi baru lahir masih terjadi setiap tahun tanpa pengecualian selama periode 2016–2024.</p>
+      </div>
+      <div class="insight-card">
+        <div class="ic-num">02</div>
+        <p>Terdapat ketimpangan signifikan antar wilayah — beberapa puskesmas menunjukkan angka jauh lebih tinggi dari rata-rata kota.</p>
+      </div>
+      <div class="insight-card">
+        <div class="ic-num">03</div>
+        <p>Tren belum sepenuhnya stabil — angka kematian berfluktuasi naik-turun antar tahun, bukan menurun konsisten.</p>
+      </div>
+      <div class="insight-card">
+        <div class="ic-num">04</div>
+        <p>Beberapa kecamatan menjadi area fokus dengan kontribusi kasus paling tinggi yang perlu intervensi prioritas.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REKOMENDASI -->
+<section class="section" style="background: var(--white);">
+  <div class="section-inner">
+    <div class="section-header">
+      <div class="section-tag">Rekomendasi</div>
+      <h2 class="section-title">Langkah Strategis Berbasis Data</h2>
+      <p class="section-sub">Rekomendasi ini dirumuskan berdasarkan hasil analisis data untuk mendukung penurunan angka kematian bayi baru lahir di Kota Bandung.</p>
+    </div>
+    <div class="reko-grid">
+      <div class="reko-card">
+        <div class="reko-num">01</div>
+        <div>
+          <h4>Peningkatan Pelayanan Puskesmas Risiko Tinggi</h4>
+          <p>Fasilitas kesehatan pada wilayah dengan angka kematian tinggi perlu meningkatkan mutu pelayanan ibu hamil, persalinan, dan neonatal — termasuk pemeriksaan ANC rutin dan deteksi dini komplikasi.</p>
+        </div>
+      </div>
+      <div class="reko-card">
+        <div class="reko-num">02</div>
+        <div>
+          <h4>Penyuluhan Ibu Hamil tentang Tanda Bahaya</h4>
+          <p>Edukasi kepada ibu hamil perlu ditingkatkan agar masyarakat memahami pentingnya pemeriksaan rutin dan persalinan di fasilitas kesehatan untuk mengurangi risiko kematian bayi.</p>
+        </div>
+      </div>
+      <div class="reko-card">
+        <div class="reko-num">03</div>
+        <div>
+          <h4>Pemantauan Rutin oleh Dinas Kesehatan</h4>
+          <p>Dashboard dapat digunakan untuk memantau perkembangan angka kematian secara berkala, memungkinkan identifikasi cepat wilayah dengan peningkatan kasus dan respons yang tepat sasaran.</p>
+        </div>
+      </div>
+      <div class="reko-card">
+        <div class="reko-num">04</div>
+        <div>
+          <h4>Intervensi Khusus Wilayah Risiko Tinggi</h4>
+          <p>Wilayah risiko tinggi memerlukan kunjungan tenaga kesehatan yang intensif, pendampingan ibu hamil berisiko, serta penyediaan fasilitas rujukan yang cepat dan memadai.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA BANNER -->
+<div style="max-width: 1160px; margin: 0 auto; padding: 0 24px 80px;">
+  <div class="cta-banner">
+    <div>
+      <h2>Mulai Eksplorasi Data Sekarang</h2>
+      <p>Lihat dashboard interaktif dan pelajari pola kematian bayi baru lahir di Kota Bandung.</p>
+    </div>
+    <div class="cta-actions">
+      <a href="dashboard.html" class="btn-white">Buka Dashboard</a>
+      <a href="edukasi.html" class="btn-outline" style="color:white;">Halaman Edukasi</a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <span class="brand-name">Bayi<span>Stat</span></span>
+        <p>Sistem informasi data kematian bayi baru lahir di Kota Bandung. Dikembangkan oleh Kelompok 2 D3 Kebidanan, Universitas Bhakti Kencana.</p>
+      </div>
+      <div class="footer-col">
+        <h5>Navigasi</h5>
+        <ul>
+          <li><a href="index.html">Beranda</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="edukasi.html">Edukasi</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Sumber Data</h5>
+        <ul>
+          <li><a href="https://opendata.bandung.go.id" target="_blank">Open Data Bandung</a></li>
+          <li><a href="#">Dinas Kesehatan Kota Bandung</a></li>
+          <li><a href="#">Data Puskesmas 2016–2024</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h5>Tim</h5>
+        <ul>
+          <li><a href="#">Intan Fitriyah (Ketua)</a></li>
+          <li><a href="#">Alisa Nur Alifah</a></li>
+          <li><a href="#">Sri Khoirun Nissa</a></li>
+          <li><a href="#">Salma Miftahul Fauziah</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025/2026 BayiStat · Universitas Bhakti Kencana · Prodi D3 Kebidanan</span>
+      <span class="footer-credits">Mata Kuliah Teknologi Informasi · Dosen: Linda Listriyati, M.Keb</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

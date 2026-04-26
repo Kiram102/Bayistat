@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BayiStat — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy: #0d1f3c;
+      --navy-mid: #1a3260;
+      --blue: #1e56c8;
+      --blue-light: #3b76f5;
+      --sky: #dbeafe;
+      --red: #c0392b;
+      --red-light: #fff0ee;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --green: #059669;
+      --green-light: #ecfdf5;
+      --cream: #f5f7ff;
+      --white: #ffffff;
+      --border: #dee7f8;
+      --text: #0d1f3c;
+      --muted: #5c718f;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    nav {
+      background: var(--navy);
+      position: sticky; top: 0; z-index: 100;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 24px; height: 62px;
+    }
+    .nav-brand {
+      font-family: 'Fraunces', serif;
+      font-weight: 900; font-size: 1.3rem;
+      color: #fff; text-decoration: none; letter-spacing: -0.5px;
+    }
+    .nav-brand span { color: #7eb3ff; }
+    .nav-links { display: flex; gap: 4px; list-style: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.7); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      padding: 7px 14px; border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #fff; background: rgba(255,255,255,0.1);
+    }
+
+    .filter-bar {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 0;
+    }
+    .filter-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0 24px;
+      display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted);
+    }
+    .filter-group select {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 500;
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 12px; color: var(--text);
+      background: #f8faff; outline: none;
+      cursor: pointer; min-width: 160px;
+      transition: border-color 0.2s;
+    }
+    .filter-group select:focus { border-color: var(--blue-light); }
+    .btn-reset {
+      font-family: 'DM Sans', sans-serif;
+      background: transparent; border: 1px solid var(--border);
+      border-radius: 8px; font-size: 13px; font-weight: 600;
+      color: var(--muted); padding: 8px 16px; cursor: pointer;
+      transition: all 0.2s; margin-bottom: 0;
+    }
+    .btn-reset:hover { border-color: var(--blue); color: var(--blue); background: var(--sky); }
+
+    .dash-wrap {
+      max-width: 1280px; margin: 0 auto;
+      padding: 24px 24px 60px;
+      display: flex; flex-direction: column; gap: 20px;
+    }
+
+    .stat-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    }
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .stat-card.red { border-left: 4px solid var(--red); }
+    .stat-card.amber { border-left: 4px solid var(--amber); }
+    .stat-card.green { border-left: 4px solid var(--green); }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .stat-icon.red { background: var(--red-light); }
+    .stat-icon.amber { background: var(--amber-light); }
+    .stat-icon.green { background: var(--green-light); }
+    .stat-content { flex: 1; min-width: 0; }
+    .stat-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted); margin-bottom: 4px;
+    }
+    .stat-value {
+      font-family: 'Fraunces', serif;
+      font-size: 1.9rem; font-weight: 900; color: var(--navy); line-height: 1;
+    }
+    .stat-sub {
+      font-size: 11px; color: var(--muted); margin-top: 4px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .chart-row-top {
+      display: grid; grid-template-columns: 1fr 340px; gap: 16px;
+    }
+    .chart-row-bottom {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .chart-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px;
+    }
+    .chart-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .chart-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.8px; color: var(--muted);
+    }
+    .chart-badge {
+      font-size: 10px; font-weight: 700;
+      padding: 3px 10px; border-radius: 100px;
+      background: var(--sky); color: var(--blue);
+    }
+    .chart-wrap {
+      position: relative;
+    }
+    .chart-wrap canvas { display: block; }
+
+    footer {
+      background: var(--navy); color: rgba(255,255,255,0.6);
+      padding: 28px 24px;
+    }
+    .footer-inner {
+      max-width: 1280px; margin: 0 auto;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px;
+    }
+
+    @media (max-width: 960px) {
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .chart-row-top { grid-template-columns: 1fr; }
+      .chart-row-bottom { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .stat-row { grid-template-columns: 1fr; }
+      .filter-inner { flex-direction: column; align-items: stretch; }
+      .filter-group select { min-width: unset; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-inner">
+    <a class="nav-brand" href="index.html">Bayi<span>Stat</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html">Beranda</a></li>
+      <li><a href="edukasi.html">Edukasi</a></li>
+      <li><a href="dashboard.html" class="active">Dashboard</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- FILTER BAR -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-group">
+      <label>Kecamatan</label>
+      <select id="filterKecamatan">
+        <option value="">Semua Kecamatan</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Puskesmas</label>
+      <select id="filterPuskesmas">
+        <option value="">Semua Puskesmas</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tahun</label>
+      <select id="filterTahun">
+        <option value="">Semua Tahun</option>
+      </select>
+    </div>
+    <button class="btn-reset" onclick="resetFilters()">↺ Reset Filter</button>
+  </div>
+</div>
+
+<!-- DASHBOARD CONTENT -->
+<div class="dash-wrap">
+
+  <!-- STAT CARDS -->
+  <div class="stat-row">
+    <div class="stat-card red">
+      <div class="stat-icon red">📊</div>
+      <div class="stat-content">
+        <div class="stat-label">Total Kasus</div>
+        <div class="stat-value" id="statTotal">–</div>
+        <div class="stat-sub">kematian bayi baru lahir</div>
+      </div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-icon amber">⬆️</div>
+      <div class="stat-content">
+        <div class="stat-label">Kasus Tertinggi</div>
+        <div class="stat-value" id="statMax">–</div>
+        <div class="stat-sub" id="statMaxNama">–</div>
+      </div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-icon green">⬇️</div>
+      <div class="stat-content">
+        <div class="stat-label">Kasus Terendah</div>
+        <div class="stat-value" id="statMin">–</div>
+        <div class="stat-sub" id="statMinNama">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 1: Bar + Pie -->
+  <div class="chart-row-top">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title" id="barTitle">Jumlah per Kecamatan</span>
+        <span class="chart-badge">Bar Chart</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="chartBar"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Proporsi per Kecamatan</span>
+        <span class="chart-badge">Donut</span>
+      </div>
+      <div class="chart-wrap" style="height:280px;">
+        <canvas id="chartPie"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROW 2: Line Tren + Line Kecamatan -->
+  <div class="chart-row-bottom">
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Tren Kematian per Tahun</span>
+        <span class="chart-badge">Line Chart</span>
+      </div>
+      <div class="chart-wrap" style="height:240px;">
+        <canvas id="chartLine"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <span class="chart-title">Total per Kecamatan</span>
+        <span class="chart-badge">Line Chart</span>
+      </div>
+      <div class="chart-wrap" style="height:240px;">
+        <canvas id="chartLineKec"></canvas>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <span>© 2025/2026 BayiStat · Universitas Bhakti Kencana · Prodi D3 Kebidanan</span>
+    <span style="color:rgba(255,255,255,0.35);">Mata Kuliah Teknologi Informasi · Dosen: Linda Listriyati, M.Keb</span>
+  </div>
+</footer>
+
+<script>
+const rawData = [
+  {id:1,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:1,tahun:2016},
+  {id:2,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:4,tahun:2016},
+  {id:3,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:3,tahun:2016},
+  {id:4,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:5,tahun:2016},
+  {id:5,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:2,tahun:2016},
+  {id:6,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT PUTER",jumlah:0,tahun:2016},
+  {id:7,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT SALAM",jumlah:0,tahun:2016},
+  {id:8,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:2,tahun:2016},
+  {id:9,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT NEGLASARI",jumlah:0,tahun:2016},
+  {id:10,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PADASUKA",jumlah:4,tahun:2016},
+  {id:11,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SARI",jumlah:10,tahun:2016},
+  {id:12,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM AJI",jumlah:5,tahun:2016},
+  {id:13,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGABODAS",jumlah:3,tahun:2016},
+  {id:14,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASUNDAN",jumlah:0,tahun:2016},
+  {id:15,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:2,tahun:2016},
+  {id:16,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT CETARIP",jumlah:1,tahun:2016},
+  {id:17,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT KOPO",jumlah:3,tahun:2016},
+  {id:18,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:0,tahun:2016},
+  {id:19,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:3,tahun:2016},
+  {id:20,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:0,tahun:2016},
+  {id:21,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANGJAYA",jumlah:2,tahun:2016},
+  {id:22,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:4,tahun:2016},
+  {id:23,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:1,tahun:2016},
+  {id:24,nama_kecamatan:"CINAMBO",upt_puskesmas:"UPT CINAMBO",jumlah:1,tahun:2016},
+  {id:25,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:2,tahun:2016},
+  {id:26,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:2,tahun:2016},
+  {id:27,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:1,tahun:2016},
+  {id:28,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:1,tahun:2016},
+  {id:29,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:0,tahun:2016},
+  {id:30,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANGSARI",jumlah:3,tahun:2016},
+  {id:31,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:1,tahun:2017},
+  {id:32,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:0,tahun:2017},
+  {id:33,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:1,tahun:2017},
+  {id:34,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:25,tahun:2017},
+  {id:35,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:0,tahun:2017},
+  {id:36,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT PUTER",jumlah:3,tahun:2017},
+  {id:37,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT SALAM",jumlah:0,tahun:2017},
+  {id:38,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:0,tahun:2017},
+  {id:39,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT NEGLASARI",jumlah:1,tahun:2017},
+  {id:40,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PADASUKA",jumlah:5,tahun:2017},
+  {id:41,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SARI",jumlah:1,tahun:2017},
+  {id:42,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM AJI",jumlah:4,tahun:2017},
+  {id:43,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGABODAS",jumlah:0,tahun:2017},
+  {id:44,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASUNDAN",jumlah:0,tahun:2017},
+  {id:45,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:4,tahun:2017},
+  {id:46,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT CETARIP",jumlah:0,tahun:2017},
+  {id:47,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT KOPO",jumlah:0,tahun:2017},
+  {id:48,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:1,tahun:2017},
+  {id:49,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:1,tahun:2017},
+  {id:50,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:24,tahun:2017},
+  {id:51,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANGJAYA",jumlah:0,tahun:2017},
+  {id:52,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:12,tahun:2017},
+  {id:53,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:0,tahun:2017},
+  {id:54,nama_kecamatan:"CINAMBO",upt_puskesmas:"UPT CINAMBO",jumlah:2,tahun:2017},
+  {id:55,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:2,tahun:2017},
+  {id:56,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:2,tahun:2017},
+  {id:57,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:0,tahun:2017},
+  {id:58,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:2,tahun:2017},
+  {id:59,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:0,tahun:2017},
+  {id:60,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANGSARI",jumlah:0,tahun:2017},
+  {id:61,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:1,tahun:2018},
+  {id:62,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:4,tahun:2018},
+  {id:63,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:5,tahun:2018},
+  {id:64,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:3,tahun:2018},
+  {id:65,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:1,tahun:2018},
+  {id:66,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT PUTER",jumlah:1,tahun:2018},
+  {id:67,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT SALAM",jumlah:0,tahun:2018},
+  {id:68,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:0,tahun:2018},
+  {id:69,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT NEGLASARI",jumlah:2,tahun:2018},
+  {id:70,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PADASUKA",jumlah:2,tahun:2018},
+  {id:71,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SARI",jumlah:2,tahun:2018},
+  {id:72,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM AJI",jumlah:4,tahun:2018},
+  {id:73,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGABODAS",jumlah:1,tahun:2018},
+  {id:74,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASUNDAN",jumlah:0,tahun:2018},
+  {id:75,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:3,tahun:2018},
+  {id:76,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT CETARIP",jumlah:0,tahun:2018},
+  {id:77,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT KOPO",jumlah:2,tahun:2018},
+  {id:78,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:1,tahun:2018},
+  {id:79,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:0,tahun:2018},
+  {id:80,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:2,tahun:2018},
+  {id:81,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANGJAYA",jumlah:1,tahun:2018},
+  {id:82,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:1,tahun:2018},
+  {id:83,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:0,tahun:2018},
+  {id:84,nama_kecamatan:"CINAMBO",upt_puskesmas:"UPT CINAMBO",jumlah:0,tahun:2018},
+  {id:85,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:1,tahun:2018},
+  {id:86,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:2,tahun:2018},
+  {id:87,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:0,tahun:2018},
+  {id:88,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:1,tahun:2018},
+  {id:89,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:2,tahun:2018},
+  {id:90,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANGSARI",jumlah:0,tahun:2018},
+  {id:91,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:0,tahun:2019},
+  {id:92,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT LEDENG",jumlah:0,tahun:2019},
+  {id:93,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT KARANGSETRA",jumlah:0,tahun:2019},
+  {id:94,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SARIJADI",jumlah:1,tahun:2019},
+  {id:95,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:2,tahun:2019},
+  {id:96,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAGALIH",jumlah:2,tahun:2019},
+  {id:97,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAWARNA",jumlah:2,tahun:2019},
+  {id:98,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:0,tahun:2019},
+  {id:99,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT SUKARAJA",jumlah:1,tahun:2019},
+  {id:100,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:2,tahun:2019},
+  {id:101,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT BABATAN",jumlah:0,tahun:2019},
+  {id:102,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:1,tahun:2019},
+  {id:103,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIPAKU",jumlah:0,tahun:2019},
+  {id:104,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT PUTER",jumlah:0,tahun:2019},
+  {id:105,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT DAGO",jumlah:0,tahun:2019},
+  {id:106,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT SEKELOA",jumlah:0,tahun:2019},
+  {id:107,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT CIKUTRA LAMA",jumlah:22,tahun:2019},
+  {id:108,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT SALAM",jumlah:0,tahun:2019},
+  {id:109,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT TAMANSARI",jumlah:0,tahun:2019},
+  {id:110,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:1,tahun:2019},
+  {id:111,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT BALAIKOTA",jumlah:0,tahun:2019},
+  {id:112,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT NEGLASARI",jumlah:0,tahun:2019},
+  {id:113,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT CIGADUNG",jumlah:0,tahun:2019},
+  {id:114,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT PADASUKA",jumlah:0,tahun:2019},
+  {id:115,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT PASIRLAYUNG",jumlah:1,tahun:2019},
+  {id:116,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKANSARI",jumlah:4,tahun:2019},
+  {id:117,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SURABAYA",jumlah:2,tahun:2019},
+  {id:118,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM ADJIE",jumlah:0,tahun:2019},
+  {id:119,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT GUMURUH",jumlah:0,tahun:2019},
+  {id:120,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:0,tahun:2019},
+  {id:121,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGABODAS",jumlah:0,tahun:2019},
+  {id:122,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT SURYALAYA",jumlah:0,tahun:2019},
+  {id:123,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT CIJAGRA BARU",jumlah:0,tahun:2019},
+  {id:124,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT CIJAGRA LAMA",jumlah:0,tahun:2019},
+  {id:125,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASUNDAN",jumlah:0,tahun:2019},
+  {id:126,nama_kecamatan:"REGOL",upt_puskesmas:"UPT MOCH. RAMDAN",jumlah:2,tahun:2019},
+  {id:127,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASIRLUYU",jumlah:0,tahun:2019},
+  {id:128,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT CETARIP",jumlah:0,tahun:2019},
+  {id:129,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT BABAKAN TAROGONG",jumlah:1,tahun:2019},
+  {id:130,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT SUKAPARKIR",jumlah:1,tahun:2019},
+  {id:131,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:3,tahun:2019},
+  {id:132,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT ASTANAANYAR",jumlah:1,tahun:2019},
+  {id:133,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT LIOGENTENG",jumlah:0,tahun:2019},
+  {id:134,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PELINDUNG HEWAN",jumlah:3,tahun:2019},
+  {id:135,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT KOPO",jumlah:0,tahun:2019},
+  {id:136,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT WETAN",jumlah:3,tahun:2019},
+  {id:137,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT KIDUL",jumlah:2,tahun:2019},
+  {id:138,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:0,tahun:2019},
+  {id:139,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CIBOLERANG",jumlah:0,tahun:2019},
+  {id:140,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT SUKAHAJI",jumlah:0,tahun:2019},
+  {id:141,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:0,tahun:2019},
+  {id:142,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIJERAH",jumlah:0,tahun:2019},
+  {id:143,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIGONDEWAH",jumlah:1,tahun:2019},
+  {id:144,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:0,tahun:2019},
+  {id:145,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT JAJAWAY",jumlah:0,tahun:2019},
+  {id:146,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT ANTAPANI",jumlah:1,tahun:2019},
+  {id:147,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANG JAYA",jumlah:0,tahun:2019},
+  {id:148,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT JATIHANDAP",jumlah:0,tahun:2019},
+  {id:149,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT MANDALA MEKAR",jumlah:1,tahun:2019},
+  {id:150,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT PAMULANG",jumlah:4,tahun:2019},
+  {id:151,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT GIRIMANDE",jumlah:0,tahun:2019},
+  {id:152,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:0,tahun:2019},
+  {id:153,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT RUSUNAWA",jumlah:3,tahun:2019},
+  {id:154,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:0,tahun:2019},
+  {id:155,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT PASIRJATI",jumlah:0,tahun:2019},
+  {id:156,nama_kecamatan:"CINAMBO",upt_puskesmas:"UPT CINAMBO",jumlah:2,tahun:2019},
+  {id:157,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:1,tahun:2019},
+  {id:158,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIPADUNG",jumlah:1,tahun:2019},
+  {id:159,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CILENGKRANG",jumlah:0,tahun:2019},
+  {id:160,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:35,tahun:2019},
+  {id:161,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANYILEUKAN",jumlah:0,tahun:2019},
+  {id:162,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:2,tahun:2019},
+  {id:163,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT CEMPAKA ARUM",jumlah:0,tahun:2019},
+  {id:164,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:6,tahun:2019},
+  {id:165,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT DERWATI",jumlah:2,tahun:2019},
+  {id:166,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:1,tahun:2019},
+  {id:167,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT SEKEJATI",jumlah:1,tahun:2019},
+  {id:168,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANG SARI",jumlah:0,tahun:2019},
+  {id:169,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT MENGGER",jumlah:0,tahun:2019},
+  {id:170,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT PASAWAHAN",jumlah:0,tahun:2019},
+  {id:171,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:0,tahun:2020},
+  {id:174,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SARIJADI",jumlah:1,tahun:2020},
+  {id:175,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:1,tahun:2020},
+  {id:176,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAGALIH",jumlah:1,tahun:2020},
+  {id:178,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:1,tahun:2020},
+  {id:189,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT TAMANSARI",jumlah:1,tahun:2020},
+  {id:190,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:1,tahun:2020},
+  {id:193,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT CIGADUNG",jumlah:1,tahun:2020},
+  {id:195,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PASIRLAYUNG",jumlah:1,tahun:2020},
+  {id:196,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKANSARI",jumlah:1,tahun:2020},
+  {id:198,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM ADJIE",jumlah:1,tahun:2020},
+  {id:199,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT GUMURUH",jumlah:2,tahun:2020},
+  {id:200,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:2,tahun:2020},
+  {id:205,nama_kecamatan:"REGOL",upt_puskesmas:"UPT PASUNDAN",jumlah:2,tahun:2020},
+  {id:209,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT BABAKAN TAROGONG",jumlah:4,tahun:2020},
+  {id:210,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT SUKAPARKIR",jumlah:1,tahun:2020},
+  {id:211,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:1,tahun:2020},
+  {id:212,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT ASTANAANYAR",jumlah:1,tahun:2020},
+  {id:213,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT LIOGENTENG",jumlah:2,tahun:2020},
+  {id:214,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PELINDUNG HEWAN",jumlah:1,tahun:2020},
+  {id:217,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT KIDUL",jumlah:1,tahun:2020},
+  {id:221,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:2,tahun:2020},
+  {id:222,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIJERAH",jumlah:1,tahun:2020},
+  {id:226,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT ANTAPANI",jumlah:1,tahun:2020},
+  {id:230,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT PAMULANG",jumlah:2,tahun:2020},
+  {id:232,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:3,tahun:2020},
+  {id:234,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:1,tahun:2020},
+  {id:236,nama_kecamatan:"CINAMBO",upt_puskesmas:"UPT CINAMBO",jumlah:1,tahun:2020},
+  {id:238,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIPADUNG",jumlah:3,tahun:2020},
+  {id:240,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:2,tahun:2020},
+  {id:242,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:1,tahun:2020},
+  {id:244,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:2,tahun:2020},
+  {id:249,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT MENGGER",jumlah:2,tahun:2020},
+  {id:255,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:2,tahun:2021},
+  {id:259,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT SUKARAJA",jumlah:2,tahun:2021},
+  {id:260,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:1,tahun:2021},
+  {id:269,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT TAMANSARI",jumlah:1,tahun:2021},
+  {id:270,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:1,tahun:2021},
+  {id:280,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:1,tahun:2021},
+  {id:298,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:1,tahun:2021},
+  {id:304,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:1,tahun:2021},
+  {id:313,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT RUSUNAWA",jumlah:1,tahun:2021},
+  {id:314,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:2,tahun:2021},
+  {id:326,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:1,tahun:2021},
+  {id:331,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SUKARASA",jumlah:1,tahun:2022},
+  {id:334,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SARIJADI",jumlah:1,tahun:2022},
+  {id:335,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:2,tahun:2022},
+  {id:340,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:2,tahun:2022},
+  {id:341,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT BABATAN",jumlah:1,tahun:2022},
+  {id:342,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:2,tahun:2022},
+  {id:343,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIPAKU",jumlah:1,tahun:2022},
+  {id:345,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT DAGO",jumlah:3,tahun:2022},
+  {id:346,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT SEKELOA",jumlah:1,tahun:2022},
+  {id:347,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT CIKUTRA LAMA",jumlah:2,tahun:2022},
+  {id:349,nama_kecamatan:"BANDUNG WETAN",upt_puskesmas:"UPT TAMAN SARI",jumlah:2,tahun:2022},
+  {id:350,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT TAMBLONG",jumlah:1,tahun:2022},
+  {id:352,nama_kecamatan:"CIBEUNYING KALER",upt_puskesmas:"UPT NEGLASARI",jumlah:1,tahun:2022},
+  {id:354,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PADASUKA",jumlah:1,tahun:2022},
+  {id:355,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PASIRLAYUNG",jumlah:1,tahun:2022},
+  {id:356,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKANSARI",jumlah:1,tahun:2022},
+  {id:358,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM ADJIE",jumlah:3,tahun:2022},
+  {id:359,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT GUMURUH",jumlah:1,tahun:2022},
+  {id:360,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:1,tahun:2022},
+  {id:361,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGABODAS",jumlah:1,tahun:2022},
+  {id:370,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT SUKAPAKIR",jumlah:1,tahun:2022},
+  {id:371,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT PAGARSIH",jumlah:1,tahun:2022},
+  {id:372,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT ASTANAANYAR",jumlah:3,tahun:2022},
+  {id:373,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT LIOGENTENG",jumlah:1,tahun:2022},
+  {id:375,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT KOPO",jumlah:1,tahun:2022},
+  {id:377,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT KIDUL",jumlah:3,tahun:2022},
+  {id:378,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:2,tahun:2022},
+  {id:384,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:2,tahun:2022},
+  {id:385,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT JAJAWAY",jumlah:1,tahun:2022},
+  {id:386,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT ANTAPANI",jumlah:1,tahun:2022},
+  {id:388,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT JATIHANDAP",jumlah:1,tahun:2022},
+  {id:389,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT MANDALA MEKAR",jumlah:2,tahun:2022},
+  {id:393,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT RUSUNAWA",jumlah:1,tahun:2022},
+  {id:394,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNGBERUNG INDAH",jumlah:1,tahun:2022},
+  {id:397,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:2,tahun:2022},
+  {id:398,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIPADUNG",jumlah:2,tahun:2022},
+  {id:399,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CILENGKRANG",jumlah:2,tahun:2022},
+  {id:400,nama_kecamatan:"PANYILEUKAN",upt_puskesmas:"UPT PANGHEGAR",jumlah:2,tahun:2022},
+  {id:405,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT DERWATI",jumlah:2,tahun:2022},
+  {id:409,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT MENGGER",jumlah:1,tahun:2022},
+  {id:415,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:2,tahun:2023},
+  {id:416,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAWARNA",jumlah:1,tahun:2023},
+  {id:417,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAGALIH",jumlah:1,tahun:2023},
+  {id:420,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:4,tahun:2023},
+  {id:422,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIUMBULEUIT",jumlah:1,tahun:2023},
+  {id:423,nama_kecamatan:"CIDADAP",upt_puskesmas:"UPT CIPAKU",jumlah:2,tahun:2023},
+  {id:425,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT DAGO",jumlah:1,tahun:2023},
+  {id:431,nama_kecamatan:"SUMUR BANDUNG",upt_puskesmas:"UPT BALAI KOTA",jumlah:2,tahun:2023},
+  {id:434,nama_kecamatan:"CIBEUNYING KIDUL",upt_puskesmas:"UPT PADASUKA",jumlah:1,tahun:2023},
+  {id:436,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SARI",jumlah:1,tahun:2023},
+  {id:438,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT IBRAHIM AJI",jumlah:2,tahun:2023},
+  {id:440,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:1,tahun:2023},
+  {id:441,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGA BODAS",jumlah:4,tahun:2023},
+  {id:444,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT CIJAGRA LAMA",jumlah:1,tahun:2023},
+  {id:449,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT ASTANA ANYAR",jumlah:1,tahun:2023},
+  {id:458,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:2,tahun:2023},
+  {id:460,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT SUKAHAJI",jumlah:5,tahun:2023},
+  {id:461,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:1,tahun:2023},
+  {id:464,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT GRIYA ANTAPANI",jumlah:1,tahun:2023},
+  {id:465,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT JAJAWAY",jumlah:1,tahun:2023},
+  {id:466,nama_kecamatan:"ANTAPANI",upt_puskesmas:"UPT ANTAPANI",jumlah:1,tahun:2023},
+  {id:467,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANG JAYA",jumlah:2,tahun:2023},
+  {id:472,nama_kecamatan:"ARCAMANIK",upt_puskesmas:"UPT ARCAMANIK",jumlah:1,tahun:2023},
+  {id:474,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT UJUNG BERUNG INDAH",jumlah:1,tahun:2023},
+  {id:475,nama_kecamatan:"UJUNG BERUNG",upt_puskesmas:"UPT PASIR JATI",jumlah:2,tahun:2023},
+  {id:479,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIPADUNG",jumlah:1,tahun:2023},
+  {id:482,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:1,tahun:2023},
+  {id:484,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:1,tahun:2023},
+  {id:485,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT DERWATI",jumlah:3,tahun:2023},
+  {id:486,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:1,tahun:2023},
+  {id:488,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANG SARI",jumlah:1,tahun:2023},
+  {id:489,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT MENGGER",jumlah:2,tahun:2023},
+  {id:494,nama_kecamatan:"SUKASARI",upt_puskesmas:"UPT SARIJADI",jumlah:1,tahun:2024},
+  {id:495,nama_kecamatan:"SUKAJADI",upt_puskesmas:"UPT SUKAJADI",jumlah:4,tahun:2024},
+  {id:498,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT PASIRKALIKI",jumlah:1,tahun:2024},
+  {id:499,nama_kecamatan:"CICENDO",upt_puskesmas:"UPT SUKARAJA",jumlah:1,tahun:2024},
+  {id:500,nama_kecamatan:"ANDIR",upt_puskesmas:"UPT GARUDA",jumlah:1,tahun:2024},
+  {id:505,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT DAGO",jumlah:4,tahun:2024},
+  {id:506,nama_kecamatan:"COBLONG",upt_puskesmas:"UPT CIKUTRA LAMA",jumlah:1,tahun:2024},
+  {id:516,nama_kecamatan:"KIARACONDONG",upt_puskesmas:"UPT BABAKAN SARI",jumlah:1,tahun:2024},
+  {id:519,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT GUMURUH",jumlah:1,tahun:2024},
+  {id:520,nama_kecamatan:"BATUNUNGGAL",upt_puskesmas:"UPT AHMAD YANI",jumlah:1,tahun:2024},
+  {id:521,nama_kecamatan:"LENGKONG",upt_puskesmas:"UPT TALAGA BODAS",jumlah:1,tahun:2024},
+  {id:526,nama_kecamatan:"REGOL",upt_puskesmas:"UPT MOH RAMDHAN",jumlah:1,tahun:2024},
+  {id:529,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT ASTANA ANYAR",jumlah:1,tahun:2024},
+  {id:530,nama_kecamatan:"ASTANAANYAR",upt_puskesmas:"UPT LIOGENTENG",jumlah:1,tahun:2024},
+  {id:532,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT CETARIP",jumlah:1,tahun:2024},
+  {id:533,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT SUKAPAKIR",jumlah:1,tahun:2024},
+  {id:534,nama_kecamatan:"BOJONGLOA KALER",upt_puskesmas:"UPT BABAKAN TAROGONG",jumlah:1,tahun:2024},
+  {id:536,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT WETAN",jumlah:2,tahun:2024},
+  {id:537,nama_kecamatan:"BOJONGLOA KIDUL",upt_puskesmas:"UPT CIBADUYUT KIDUL",jumlah:1,tahun:2024},
+  {id:538,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CARINGIN",jumlah:2,tahun:2024},
+  {id:539,nama_kecamatan:"BABAKAN CIPARAY",upt_puskesmas:"UPT CIBOLERANG",jumlah:1,tahun:2024},
+  {id:541,nama_kecamatan:"BANDUNG KULON",upt_puskesmas:"UPT CIBUNTU",jumlah:2,tahun:2024},
+  {id:547,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT SINDANG JAYA",jumlah:1,tahun:2024},
+  {id:551,nama_kecamatan:"MANDALAJATI",upt_puskesmas:"UPT MANDALA MEKAR",jumlah:1,tahun:2024},
+  {id:557,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIBIRU",jumlah:1,tahun:2024},
+  {id:559,nama_kecamatan:"CIBIRU",upt_puskesmas:"UPT CIPADUNG",jumlah:3,tahun:2024},
+  {id:562,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT RIUNG BANDUNG",jumlah:1,tahun:2024},
+  {id:563,nama_kecamatan:"GEDEBAGE",upt_puskesmas:"UPT CEMPAKA ARUM",jumlah:1,tahun:2024},
+  {id:564,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT CIPAMOKOLAN",jumlah:2,tahun:2024},
+  {id:565,nama_kecamatan:"RANCASARI",upt_puskesmas:"UPT DERWATI",jumlah:1,tahun:2024},
+  {id:566,nama_kecamatan:"BUAHBATU",upt_puskesmas:"UPT MARGAHAYU RAYA",jumlah:2,tahun:2024},
+  {id:568,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT KUJANG SARI",jumlah:1,tahun:2024},
+  {id:570,nama_kecamatan:"BANDUNG KIDUL",upt_puskesmas:"UPT PASAWAHAN",jumlah:1,tahun:2024},
+];
+
+const PALETTE = ['#1e56c8','#c0392b','#059669','#d97706','#7c3aed','#0891b2','#ea580c','#db2777','#65a30d','#4f46e5','#0d9488','#dc2626','#9333ea','#2563eb','#16a34a','#ca8a04','#e11d48','#0284c7','#c026d3','#78716c'];
+
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 12;
+
+function populateFilters() {
+  const kecSet = [...new Set(rawData.map(d => d.nama_kecamatan))].sort();
+  const tahunSet = [...new Set(rawData.map(d => d.tahun))].sort();
+  const selKec = document.getElementById('filterKecamatan');
+  const selTahun = document.getElementById('filterTahun');
+  kecSet.forEach(k => selKec.add(new Option(k, k)));
+  tahunSet.forEach(t => selTahun.add(new Option(t, t)));
+  selKec.addEventListener('change', () => { updatePuskesmasOptions(); render(); });
+  document.getElementById('filterPuskesmas').addEventListener('change', render);
+  selTahun.addEventListener('change', render);
+}
+
+function updatePuskesmasOptions() {
+  const kec = document.getElementById('filterKecamatan').value;
+  const selPus = document.getElementById('filterPuskesmas');
+  selPus.innerHTML = '<option value="">Semua Puskesmas</option>';
+  const filtered = kec ? rawData.filter(d => d.nama_kecamatan === kec) : rawData;
+  [...new Set(filtered.map(d => d.upt_puskesmas))].sort().forEach(p => selPus.add(new Option(p, p)));
+}
+
+function resetFilters() {
+  document.getElementById('filterKecamatan').value = '';
+  document.getElementById('filterTahun').value = '';
+  updatePuskesmasOptions();
+  render();
+}
+
+function getFiltered() {
+  const kec   = document.getElementById('filterKecamatan').value;
+  const pus   = document.getElementById('filterPuskesmas').value;
+  const tahun = document.getElementById('filterTahun').value;
+  return rawData.filter(d =>
+    (!kec   || d.nama_kecamatan === kec) &&
+    (!pus   || d.upt_puskesmas  === pus) &&
+    (!tahun || d.tahun == tahun)
+  );
+}
+
+function getFilteredByTahunOnly() {
+  const tahun = document.getElementById('filterTahun').value;
+  return rawData.filter(d => (!tahun || d.tahun == tahun));
+}
+
+function aggByKecamatan(data) {
+  const map = {};
+  data.forEach(d => { map[d.nama_kecamatan] = (map[d.nama_kecamatan] || 0) + d.jumlah; });
+  const sorted = Object.entries(map).sort((a,b) => b[1]-a[1]);
+  return { labels: sorted.map(e=>e[0]), values: sorted.map(e=>e[1]) };
+}
+
+function aggByTahun(data) {
+  const allTahun = [...new Set(rawData.map(d => d.tahun))].sort((a,b)=>a-b);
+  const map = {}; allTahun.forEach(t => map[t] = 0);
+  data.forEach(d => { if (map[d.tahun] !== undefined) map[d.tahun] += d.jumlah; });
+  const tahunFilter = document.getElementById('filterTahun').value;
+  const maxT = tahunFilter ? Number(tahunFilter) : Math.max(...allTahun);
+  const sorted = Object.entries(map).filter(([t]) => Number(t) <= maxT).sort((a,b)=>a[0]-b[0]);
+  return { labels: sorted.map(e=>String(e[0])), values: sorted.map(e=>e[1]) };
+}
+
+function updateStats(data) {
+  const total = data.reduce((s,d) => s + d.jumlah, 0);
+  const mapPus = {};
+  data.forEach(d => { mapPus[d.upt_puskesmas] = (mapPus[d.upt_puskesmas]||0) + d.jumlah; });
+  const entries = Object.entries(mapPus).filter(([,v]) => v > 0);
+  let maxVal=0, maxNama='-', minVal=Infinity, minNama='-';
+  entries.forEach(([nama,val]) => {
+    if (val > maxVal) { maxVal=val; maxNama=nama; }
+    if (val < minVal) { minVal=val; minNama=nama; }
+  });
+  if (minVal===Infinity) { minVal=0; minNama='-'; }
+  document.getElementById('statTotal').textContent = total.toLocaleString('id');
+  document.getElementById('statMax').textContent = maxVal;
+  document.getElementById('statMaxNama').textContent = maxNama;
+  document.getElementById('statMin').textContent = minVal;
+  document.getElementById('statMinNama').textContent = minNama;
+}
+
+let chartBar, chartPie, chartLine, chartLineKec;
+
+const chartDefaults = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { display: false } }
+};
+
+function buildBarData() {
+  const kec = document.getElementById('filterKecamatan').value;
+  const pus = document.getElementById('filterPuskesmas').value;
+  if (pus) {
+    document.getElementById('barTitle').textContent = 'Tren per Tahun — ' + pus;
+    return aggByTahun(getFiltered());
+  } else if (kec) {
+    document.getElementById('barTitle').textContent = 'Tren per Tahun — ' + kec;
+    return aggByTahun(getFiltered());
+  } else {
+    document.getElementById('barTitle').textContent = 'Jumlah per Kecamatan';
+    return aggByKecamatan(getFilteredByTahunOnly());
+  }
+}
+
+function initCharts() {
+  const barD  = buildBarData();
+  const lineD = aggByTahun(getFiltered());
+  const kecD  = aggByKecamatan(getFilteredByTahunOnly());
+  const topN  = 10;
+  const pieLabels = [...kecD.labels.slice(0,topN)];
+  const pieValues = [...kecD.values.slice(0,topN)];
+  if (kecD.labels.length > topN) { pieLabels.push('Lainnya'); pieValues.push(kecD.values.slice(topN).reduce((a,b)=>a+b,0)); }
+
+  const tooltipLabel = ctx => ` ${ctx.parsed.y ?? ctx.parsed} kasus`;
+
+  chartBar = new Chart(document.getElementById('chartBar'), {
+    type: 'bar',
+    data: {
+      labels: barD.labels,
+      datasets: [{ label:'Jumlah', data: barD.values,
+        backgroundColor: barD.labels.map((_,i)=>PALETTE[i%PALETTE.length]+'cc'),
+        borderColor: barD.labels.map((_,i)=>PALETTE[i%PALETTE.length]),
+        borderWidth: 1, borderRadius: 6 }]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: tooltipLabel } } },
+      scales: { x: { ticks: { font:{size:10}, maxRotation:45 }, grid: { display:false } }, y: { beginAtZero:true, grid: { color:'#dee7f8' } } } }
+  });
+
+  chartPie = new Chart(document.getElementById('chartPie'), {
+    type: 'doughnut',
+    data: {
+      labels: pieLabels,
+      datasets: [{ data: pieValues,
+        backgroundColor: pieLabels.map((_,i)=>PALETTE[i%PALETTE.length]+'cc'),
+        borderColor: '#fff', borderWidth: 2 }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins: { legend: { position:'bottom', labels: { font:{size:10}, boxWidth:10, padding:6 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed} kasus` } } } }
+  });
+
+  chartLine = new Chart(document.getElementById('chartLine'), {
+    type: 'line',
+    data: {
+      labels: lineD.labels,
+      datasets: [{ label:'Total', data: lineD.values,
+        borderColor:'#1e56c8', backgroundColor:'rgba(30,86,200,0.08)',
+        fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#1e56c8',
+        pointBorderColor:'#fff', pointBorderWidth:2 }]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: tooltipLabel } } },
+      scales: { x: { grid:{display:false} }, y: { beginAtZero:true, grid:{color:'#dee7f8'} } } }
+  });
+
+  chartLineKec = new Chart(document.getElementById('chartLineKec'), {
+    type: 'line',
+    data: {
+      labels: kecD.labels,
+      datasets: [{ label:'Total', data: kecD.values,
+        borderColor:'#c0392b', backgroundColor:'rgba(192,57,43,0.08)',
+        fill:true, tension:0.3, pointRadius:5, pointBackgroundColor:'#c0392b',
+        pointBorderColor:'#fff', pointBorderWidth:2 }]
+    },
+    options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, tooltip: { callbacks: { label: tooltipLabel } } },
+      scales: { x: { ticks:{font:{size:10},maxRotation:45}, grid:{display:false} }, y: { beginAtZero:true, grid:{color:'#dee7f8'} } } }
+  });
+}
+
+function updateCharts() {
+  const barD  = buildBarData();
+  const lineD = aggByTahun(getFiltered());
+  const kecD  = aggByKecamatan(getFilteredByTahunOnly());
+
+  chartBar.data.labels = barD.labels;
+  chartBar.data.datasets[0].data = barD.values;
+  chartBar.data.datasets[0].backgroundColor = barD.labels.map((_,i)=>PALETTE[i%PALETTE.length]+'cc');
+  chartBar.data.datasets[0].borderColor = barD.labels.map((_,i)=>PALETTE[i%PALETTE.length]);
+  chartBar.update();
+
+  const topN=10;
+  const pieLabels=[...kecD.labels.slice(0,topN)];
+  const pieValues=[...kecD.values.slice(0,topN)];
+  if(kecD.labels.length>topN){pieLabels.push('Lainnya');pieValues.push(kecD.values.slice(topN).reduce((a,b)=>a+b,0));}
+  chartPie.data.labels=pieLabels;
+  chartPie.data.datasets[0].data=pieValues;
+  chartPie.data.datasets[0].backgroundColor=pieLabels.map((_,i)=>PALETTE[i%PALETTE.length]+'cc');
+  chartPie.update();
+
+  chartLine.data.labels=lineD.labels;
+  chartLine.data.datasets[0].data=lineD.values;
+  chartLine.update();
+
+  chartLineKec.data.labels=kecD.labels;
+  chartLineKec.data.datasets[0].data=kecD.values;
+  chartLineKec.update();
+}
+
+function render() { updateStats(getFiltered()); updateCharts(); }
+
+window.addEventListener('DOMContentLoaded', () => {
+  populateFilters();
+  initCharts();
+  updateStats(rawData);
+});
+</script>
+</body>
+</html>
